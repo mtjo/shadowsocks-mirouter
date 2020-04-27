@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no"/>
+    <title>Frpc</title>
+    <link rel="stylesheet" href="resource/css/normalize.css">
+    <link rel="stylesheet" href="resource/css/main.css">
+</head>
+<body>
+<div id="container">
+    <section>
+        <h1>Frpc</h1>
+        <div class="toggle-container">
+            <div class="loading-flower">
+                <div class="flower"></div>
+            </div>
+            <div class="frame" id="turn">
+                <div class="button"></div>
+            </div>
+        </div>
+    </section>
+    <div id="statusbox">
+        <h2 class="btn-set-password" onclick="openServerDialog();">
+            <div class="k">服务器设置:</div>
+            <div class="v"><i class="ico-set"></i></div>
+
+            <div class="sub">服务器：-.-.-.- 端口：---- 协议：--- 多路复用：--</div>
+        </h2>
+        <h2 class="sec-bksize setbkspace clearfix"><span class="k">代理模式:</span>
+
+            <div class="v"><span id="bkspace">loading...</span><i class="ico-set"></i></div>
+        </h2>
+    </div>
+
+    <div class="loading-container hide">
+        <div class="flower" style="margin: 30% auto"></div>
+    </div>
+
+
+    <div id="base" class="wrapper clearfix hide">
+
+        <div class="ifnonehide">
+            <ul class="defaulthide " id="itemlist">
+
+                <!--                <li>-->
+                <!--                    <div class="name">{$nodename} <font size="1" color="blue">{$custom_domains}</font></div>-->
+                <!--                    <div class="local">IP：{$local_ip} 端口：{$local_port}</div>-->
+                <!--                    <div class="remote">远程端口：{$lremote_port} 子域名:{$subdomain}</div>-->
+                <!--                    <div class="icon">{$type}</div>-->
+                <!--                    <div class="righticon"></div>-->
+                <!--                </li>-->
+
+            </ul>
+            <div class="footer">
+                <div class="button" onclick="openNodeDialog();" id="addnode" style="font-size: 30px;line-height: 30px;">
+                    +
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="advance" class="wrapper clearfix" style="display: none">
+        <div class="yo-tip hide" id="tip"></div>
+        <div class="content">
+            <textarea id="textarea" placeholder="请粘贴frpc配置"></textarea>
+        </div>
+        <div class="footer">
+            <div class="button" id="button">配置</div>
+        </div>
+    </div>
+    <h2>使用帮助：</h2>
+    <ol>
+        <li>1: frpc客户端小米路由器插件,frp 是一个可用于内网穿透的高性能的反向代理应用，支持 tcp, udp, http, https 协议。
+        </li>
+        <li>2: 插件启用后可以通过 http://路由IP地址:端口 访问，（默认账号和密码都是admin，登录后自行修改）</li>
+        <li>3: 建议配置 Frpc 插件使用,可以实现公网域名访问</li>
+
+    </ol>
+</div>
+<div id="loading" class="loading" style="display:none;">正在加载…</div>
+<div id="toast" class="toast" style="display:none;"></div>
+<div class="mask"
+     style="position:fixed;left:0;top:0;z-index:1; width:100%;height:100%;background:rgba(0,0,0,0.4); display:none;"></div>
+<div class="bkspaceset" style="display:none;">
+    <form name="bkspaceset">
+        <input type="hidden" name="bksizeauto" id="bksizeauto">
+
+        <p class="title">代理模式方式</p>
+
+        <!--p>设置端口,不要与其他应该冲突</p-->
+
+        <div class="btn-group  btn-group-autosize">
+            <div class="btn" data-size="简单设置">gfwlist模式</div>
+            <div class="btn" data-size="自定义设置">大陆白名单模式</div>
+            <div class="btn" data-size="自定义设置">游戏模式</div>
+            <div class="btn" data-size="自定义设置">全局代理模式</div>
+            <div class="btn" data-size="自定义设置">回国模式</div>
+        </div>
+        <p>说明：</p>
+
+        <p>简单：通过ui配置</p>
+        <p>自定义：自定义修改配置文件</p>
+
+        <p class="btns">
+            <button type="submit" class="btn submit">确认</button>
+            <button type="button" class="btn cancel cancel__">取消</button>
+        </p>
+    </form>
+</div>
+<div class="loading-layer">
+    <div class="bg-cont"></div>
+</div>
+<div id="dialog-server" class="dialog-server" style="display: none;">
+    <div class="dialog">
+        <a href="javascript:closeServerDialog();" class="btn-close"></a>
+
+        <div class="form-box">
+            <div class="head">设置Frp服务器</div>
+            <div class="body">
+                <div class="input-box">
+                    <label>服务器：</label>
+                    <input type="text" placeholder="127.0.0.1" value="" name="server_addr"/>
+                </div>
+                <div class="note note-username">服务器 IP 或者域名</div>
+                <div class="input-box">
+                    <!--label>协议：</label-->
+                    <select >
+                        <option value="none">请选择加密协议</option>
+                        <option value="rc4">rc4</option>
+                        <option value="rc4-md5">rc4-md5</option>
+                        <option value="rc4-md5-6">rc4-md5-6</option>
+                        <option value="aes-128-gcm">AEAD_AES_128_GCM</option>
+                        <option value="aes-192-gcm">AEAD_AES_192_GCM</option>
+                        <option value="aes-256-gcm">AEAD_AES_256_GCM</option>
+                        <option value="aes-128-cfb">aes-128-cfb</option>
+                        <option value="aes-192-cfb">aes-192-cfb</option>
+                        <option value="aes-256-cfb" selected="">aes-256-cfb</option>
+                        <option value="aes-128-ctr">aes-128-ctr</option>
+                        <option value="aes-192-ctr">aes-192-ctr</option>
+                        <option value="aes-256-ctr">aes-256-ctr</option>
+                        <option value="camellia-128-cfb">camellia-128-cfb</option>
+                        <option value="camellia-192-cfb">camellia-192-cfb</option>
+                        <option value="camellia-256-cfb">camellia-256-cfb</option>
+                        <option value="bf-cfb">bf-cfb</option>
+                        <option value="cast5-cfb">cast5-cfb</option>
+                        <option value="idea-cfb">idea-cfb</option>
+                        <option value="rc2-cfb">rc2-cfb</option>
+                        <option value="seed-cfb">seed-cfb</option>
+                        <option value="salsa20">salsa20</option>
+                        <option value="chacha20">chacha20</option>
+                        <option value="chacha20-ietf">chacha20-ietf</option>
+                        <option value="chacha20-ietf-poly1305">chacha20-ietf-poly1305</option>
+                        <option value="xchacha20-ietf-poly1305">xchacha20-ietf-poly1305</option>
+                    </select>
+                </div>
+                <div class="note note-password">服务器协议</div>
+                <div class="input-box">
+                    <label>端口：</label>
+                    <input type="number" value="" name="server_port"/>
+                </div>
+                <div class="note note-username">服务器端口</div>
+                <div class="input-box">
+                    <label>密码：</label>
+                    <input type="text" value="" name="token"/>
+                </div>
+                <div class="note note-username">服务器密码</div>
+                <div class="input-box" style="margin: 5px auto 5px; border: none">
+                    <span>多路复用：</span>
+                    <input type="checkbox" name="tcp_mux"/>
+                </div>
+
+                <button class="btn-confirm">确定</button>
+            </div>
+        </div>
+        <!--div class="desc">
+            <div class="text">提示：您在Mac上恢复备份时，需要用该用户名和密码</div>
+            <img src="./resource/img/mac-dialog.png"/>
+        </div-->
+    </div>
+</div>
+
+<div id="dialog-node" class="dialog-server" style="display: none;">
+    <div class="dialog">
+        <a href="javascript:closeNodeDialog();" class="btn-close"></a>
+
+        <div class="form-box">
+            <div class="body">
+                <div class="input-box">
+                    <label>名称：</label>
+                    <input type="text" placeholder="请不要使用中文" value="" name="name"/>
+                </div>
+                <div class="input-box" style="margin-top: 5px;">
+                    <select name="type" style="padding-left: 10px">
+                        <option value="">请选择协议</option>
+                        <option value="tcp"> TCP</option>
+                        <option value="udp">UDP</option>
+                        <option value="http">HTTP</option>
+                        <option value="https">https</option>
+                        <option value="stcp">stcp</option>
+                    </select>
+                </div>
+                <div class="input-box" style="margin-top: 5px;">
+                    <label>内网IP：</label>
+                    <input type="text" placeholder="路由器可以写127.0.0.1" value="" name="local_ip"/>
+                </div>
+                <div class="input-box" style="margin-top: 5px;">
+                    <label>端口1：</label>
+                    <input type="number" placeholder="本地端口" value="" name="local_port"/>
+                </div>
+
+                <div class="input-box" style="margin-top: 5px;">
+                    <label>端口2：</label>
+                    <input type="number" placeholder="远程端口" value="" name="remote_port"/>
+                </div>
+
+                <div class="input-box" style="margin-top: 5px;">
+                    <label>子域名：</label>
+                    <input type="text" placeholder="subdomain" value="" name="subdomain"/>
+                </div>
+                <div class="input-box" style="margin-top: 5px;">
+                    <label>绑定域名：</label>
+                    <input type="text" placeholder="custom_domains" value="" name="custom_domains"/>
+                </div>
+
+                <div class="input-box" style="margin: 5px auto 5px; border: none">
+                    <span>压缩：</span>
+                    <input type="checkbox" name="use_compression"/>
+                    <span>加密：</span>
+                    <input type="checkbox" name="use_encryption"/>
+                </div>
+                <div style="text-align: center">
+                    <button id="save" class="btn-confirm">确定</button>
+                    <button id="delete" class="btn-confirm btn-delete hide">删除</button>
+                </div>
+            </div>
+        </div>
+        <!--div class="desc">
+            <div class="text">提示：您在Mac上恢复备份时，需要用该用户名和密码</div>
+            <img src="./resource/img/mac-dialog.png"/>
+        </div-->
+    </div>
+</div>
+
+<script src="resource/js/jquery-2.1.0.min.js"></script>
+<script src="resource/js/jsencrypt.js"></script>
+<script src="http://app.miwifi.com/js/router_request.js"></script>
+<script type="tmpl/text" id="nodeitem">
+            <li  onclick="javascript:editItem({$itemindex});">
+                <div class="name">{$nodename}  <font size="1" color="blue">{$custom_domains}</font></div>
+                <div class="local">IP：{$local_ip} 端口：{$local_port}</div>
+                <div class="remote">远程端口：{$lremote_port} 子域名:{$subdomain}</div>
+                <div class="icon">{$type} </div>
+                <div class="righticon"></div>
+            </li>
+
+
+
+</script>
+
+<script type="tmpl/text" id="servertpl">
+[common]
+server_addr = {$server_addr}
+server_port = {$server_port}
+token = {$token}
+log_file = /frpc.log
+log_level = info
+log_max_days = 3
+tcp_mux = {$tcp_mux}
+protocol = {$protocol}
+login_fail_exit = false
+user = {$user}
+
+</script>
+<script type="tmpl/text" id="itemtpl">
+[{$nodename}]
+type = {$type}
+local_ip = {$local_ip}
+local_port = {$local_port}
+use_encryption = {$use_encryption}
+use_compression = {$use_compression}
+subdomain = {$subdomain}
+custom_domains = {$custom_domains}
+
+</script>
+
+
+<script>
+    var appId = "2882303761517415902";
+    var config = {server: {}, nodeList: []};
+
+    var DEBUG = false;
+    var lock = false;
+    var errorCode = {
+        2501: '安装插件失败',
+        2502: '控制插件失败',
+        2503: '插件包不存在',
+        2504: '请输入插件ID',
+        2505: '配置信息key不能以数字开头',
+        2506: '此插件正在安装',
+        2507: '此插件已经安装',
+        2508: '插件签名验证错误',
+        2509: '签名类型错误',
+        2510: '更新状态出错',
+        2511: 'Pid不存在',
+        2512: '插件不存在',
+        2513: 'sdk版本过低',
+        2514: 'mount userdisk 出错',
+        2515: '无法获取设备id'
+    };
+    var istoast = false;
+    var toast = function (msg) {
+        if (istoast) {
+            $('#toast').stop(1, 1).hide();
+        }
+        istoast = true;
+        $('#toast').html(msg).fadeIn(400, function () {
+            setTimeout(function () {
+                $('#toast').fadeOut(400);
+                istoast = false;
+            }, 2000);
+        });
+    };
+
+    function getStatus() {
+        var data = {appId: appId};
+        routerRequest.request({
+            path: "/api-third-party/service/datacenter/get_plugin_status",
+            data: data,
+            success: function (data) {
+
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    $('.loading-flower').addClass('fade-out');
+                    $('.frame').addClass('fade-in');
+                    if (data.isEnable) {
+                        $('#turn').addClass('open');
+                        $('.defaulthide').show();
+                    } else {
+                        $('#turn').removeClass('open');
+                        $('.defaulthide').hide();
+                    }
+                    $('#turn').bind('click', toggleStatus);
+
+                } else if (data.code in errorCode) {
+                    toast(errorCode[data.code]);
+                } else {
+                    data.msg && toast(data.msg);
+                }
+            },
+            error: function (data) {
+                toast('获取插件信息失败');
+            }
+        });
+    }
+
+    function toggleStatus(evt) {
+        var target = evt.target;
+        var isOpen = $('#turn').hasClass('open');
+        var url = isOpen ? "/api-third-party/service/datacenter/plugin_disable" : "/api-third-party/service/datacenter/plugin_enable";
+        var text = isOpen ? "关闭" : "打开";
+
+        setEnable(isOpen ? "off" : "on")
+
+        if (lock) {
+            return
+        }
+        lock = true;
+
+        $('#loading').text('正在' + text + '…').show();
+        var data = {appId: appId};
+        if (DEBUG) {
+            $.extend(data, {deviceId: deviceId});
+        }
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    $('#turn').toggleClass('open');
+                } else if (data.code in errorCode) {
+                    toast(errorCode[data.code]);
+                } else {
+                    data.msg && toast(data.msg);
+                }
+                lock = false;
+                $('#loading').hide();
+                setTimeout(function () {
+                    getStatus();
+                }, 1000);
+            },
+            error: function (data) {
+                lock = false;
+                $('#loading').hide();
+                toast('修改插件状态失败');
+            }
+        });
+    }
+
+    function setEnable(enable) {
+        var url = '/api-third-party/service/datacenter/set_config';
+        var data = {
+            appId: appId,
+            key: 'enable',
+            value: enable
+        };
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    //toast('设置成功');
+                    //location.reload(1);
+                } else {
+                    toast(data.msg);
+                }
+            },
+            error: function () {
+                toast('网络异常，请重试');
+            }
+        });
+    }
+
+
+    function setType(type) {
+        var url = '/api-third-party/service/datacenter/set_config';
+        var data = {
+            appId: appId,
+            key: 'type',
+            value: type
+        };
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    toast('设置成功');
+                    location.reload(1);
+                } else {
+                    toast(data.msg);
+                }
+            },
+            error: function () {
+                toast('网络异常，请重试');
+            }
+        });
+    }
+
+    function getType() {
+
+        var url = '/api-third-party/service/datacenter/config_info';
+        var data = {
+            appId: appId,
+            key: 'type'
+        };
+        if (DEBUG) {
+            $.extend(data, {deviceId: deviceId});
+        }
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                //toast(data);
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    var selectStr = decodeURIComponent(data.value);
+                    changeSetingType(selectStr);
+                    $('#bkspace').html(selectStr);
+                    $('.btn-group-autosize .btn').each(function () {
+                        if ($(this).attr('data-size') == selectStr) {
+                            $(this).addClass('active');
+                        }
+                    });
+                } else {
+                    $('#bkspace').html(data.msg);
+                }
+            },
+            error: function () {
+                toast('网络异常，请重试');
+            }
+        });
+    }
+
+    function getServer() {
+
+        var url = '/api-third-party/service/datacenter/config_info';
+        var data = {
+            appId: appId,
+            key: 'config'
+        };
+        if (DEBUG) {
+            $.extend(data, {deviceId: deviceId});
+        }
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                //alert(data);
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    if (data.value.length > 0) {
+                        config = $.parseJSON(decodeURIComponent(data.value));
+                        //alert(decodeURIComponent(data.value));
+                        initServer();
+                        initNodeList();
+                    }
+                    //location.reload(1);
+                } else {
+                    $('#bkspace').html(data.msg);
+                }
+            },
+            error: function () {
+                toast('网络异常，请重试');
+            }
+        });
+    }
+
+    function getFrpcIni() {
+
+        var url = '/api-third-party/service/datacenter/config_info';
+        var data = {
+            appId: appId,
+            key: 'frpc_ini'
+        };
+        if (DEBUG) {
+            $.extend(data, {deviceId: deviceId});
+        }
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                //toast(data);
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    $("#textarea").val(decodeURIComponent(data.value))
+                    //$('#bkspace').html(decodeURIComponent(data.value));
+                } else {
+                    $('#bkspace').html(data.msg);
+                }
+            },
+            error: function () {
+                toast('网络异常，请重试');
+            }
+        });
+    }
+
+    function changeSetingType(type) {
+        $('.loading-container').hide();
+        if (type == "简单设置") {
+            $("#advance").hide();
+            $("#base").show();
+        } else {
+            $("#base").hide();
+            $("#advance").show();
+        }
+
+    }
+
+
+    function syncConfig(type) {
+        $('#loading').text('正在' + '同步配置' + '.').show();
+        var url = '/api-third-party/service/datacenter/set_config';
+        var data = {
+            appId: appId,
+        };
+        //sync config
+        if (type == 'base') {
+            data.key = 'config';
+            data.value = encodeURIComponent(JSON.stringify(config));
+            //alert(JSON.stringify(config));
+            //alert(JSON.stringify(data));
+
+            routerRequest.request({
+                path: url,
+                type: "GET",
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    data = $.parseJSON(data);
+                    if (data.code == 0) {
+                        $('#loading').text('正在' + '同步配置' + '..').show();
+                        syncBaseIni();
+                        //toast('设置成功1');
+                        //location.reload(1);
+                    } else {
+                        $('#loading').hide();
+                        toast(data.msg);
+                    }
+                },
+                error: function () {
+                    $('#loading').hide();
+                    toast('网络异常，请重试');
+                }
+            });
+        } else {
+            advance = $("#textarea").val();
+            advance = encodeURIComponent(advance);
+
+            data.key = 'advanceini';
+            data.value = advance;
+
+            routerRequest.request({
+                path: url,
+                type: "GET",
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    data = $.parseJSON(data);
+                    if (data.code == 0) {
+                        toast('设置成功');
+                        location.reload(1);
+                    } else {
+                        $('#loading').hide();
+                        toast(data.msg);
+                    }
+                },
+                error: function () {
+                    $('#loading').hide();
+                    toast('网络异常，请重试');
+                }
+            });
+
+        }
+
+        //initServer();
+        //initNodeList();
+
+
+    }
+
+    function syncBaseIni(){
+        //sync ini
+        var servertpl = $('#servertpl').html();
+        var serverstr = tmpl(servertpl, config.server);
+
+        var itemtpl = $('#itemtpl').html();
+        var itemstr = '';
+
+        if (config.nodeList.length > 0) {
+            $.each(config.nodeList, function (index, value) {
+                value.itemindex = index;
+                itemstr += tmpl(itemtpl, value);
+            });
+        }
+        var baseconfigini = serverstr + itemstr;
+
+        alert(baseconfigini);
+        alert(encodeURIComponent(baseconfigini));
+        var url = '/api-third-party/service/datacenter/set_config';
+        var data = {
+            appId: appId,
+            key: 'baseini',
+        };
+        data.value = encodeURIComponent(baseconfigini);
+        routerRequest.request({
+            path: url,
+            type: "GET",
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                data = $.parseJSON(data);
+                if (data.code == 0) {
+                    $('#loading').hide();
+                    //toast('设置成功2');
+                    //location.reload(1);
+                    initNodeList();
+                    initServer();
+                } else {
+                    $('#loading').hide();
+                    toast(data.msg);
+                }
+            },
+            error: function () {
+                $('#loading').hide();
+                toast('网络异常，请重试');
+            }
+        });
+    }
+
+    var tmpl = (function () {
+        /*
+         sArrName 拼接字符串的变量名。
+         */
+        var sArrName = "sArrCMX",
+            sLeft = sArrName + '.push("';
+        /*
+         tag:模板标签,各属性含义：
+         tagG: tag系列
+         isBgn: 是开始类型的标签
+         isEnd: 是结束类型的标签
+         cond: 标签条件
+         rlt: 标签结果
+         sBgn: 开始字符串
+         sEnd: 结束字符串
+         */
+        var tags = {
+            'js': {
+                tagG: 'js',
+                isBgn: 1,
+                isEnd: 1,
+                sBgn: '");',
+                sEnd: ';' + sLeft
+            },
+            //任意js语句, 里面如果需要输出到模板，用print("aaa");
+            'if': {
+                tagG: 'if',
+                isBgn: 1,
+                rlt: 1,
+                sBgn: '");if',
+                sEnd: '{' + sLeft
+            },
+            //if语句，写法为{if($a>1)},需要自带括号
+            'elseif': {
+                tagG: 'if',
+                cond: 1,
+                rlt: 1,
+                sBgn: '");} else if',
+                sEnd: '{' + sLeft
+            },
+            //if语句，写法为{elseif($a>1)},需要自带括号
+            'else': {
+                tagG: 'if',
+                cond: 1,
+                rlt: 2,
+                sEnd: '");}else{' + sLeft
+            },
+            //else语句，写法为{else}
+            '/if': {
+                tagG: 'if',
+                isEnd: 1,
+                sEnd: '");}' + sLeft
+            },
+            //endif语句，写法为{/if}
+            'for': {
+                tagG: 'for',
+                isBgn: 1,
+                rlt: 1,
+                sBgn: '");for',
+                sEnd: '{' + sLeft
+            },
+            //for语句，写法为{for(var i=0;i<1;i++)},需要自带括号
+            '/for': {
+                tagG: 'for',
+                isEnd: 1,
+                sEnd: '");}' + sLeft
+            },
+            //endfor语句，写法为{/for}
+            'while': {
+                tagG: 'while',
+                isBgn: 1,
+                rlt: 1,
+                sBgn: '");while',
+                sEnd: '{' + sLeft
+            },
+            //while语句,写法为{while(i-->0)},需要自带括号
+            '/while': {
+                tagG: 'while',
+                isEnd: 1,
+                sEnd: '");}' + sLeft
+            } //endwhile语句, 写法为{/while}
+        };
+
+        return function (sTmpl, opts) {
+            var N = -1,
+                NStat = []; //语句堆栈;
+            var ss = [
+                [/\{strip\}([\s\S]*?)\{\/strip\}/g, function (a, b) {
+                    return b.replace(/[\r\n]\s*\}/g, " }").replace(/[\r\n]\s*/g, "");
+                }],
+                [/\\/g, '\\\\'],
+                [/"/g, '\\"'],
+                [/\r/g, '\\r'],
+                [/\n/g, '\\n'], //为js作转码.
+                [
+                    /\{[\s\S]*?\S\}/g, //js里使用}时，前面要加空格。
+                    function (a) {
+                        a = a.substr(1, a.length - 2);
+                        for (var i = 0; i < ss2.length; i++) {
+                            a = a.replace(ss2[i][0], ss2[i][1]);
+                        }
+                        var tagName = a;
+                        if (/^(.\w+)\W/.test(tagName)) {
+                            tagName = RegExp.$1;
+                        }
+                        var tag = tags[tagName];
+                        if (tag) {
+                            if (tag.isBgn) {
+                                var stat = NStat[++N] = {
+                                    tagG: tag.tagG,
+                                    rlt: tag.rlt
+                                };
+                            }
+                            if (tag.isEnd) {
+                                if (N < 0) {
+                                    throw new Error("Unexpected Tag: " + a);
+                                }
+                                stat = NStat[N--];
+                                if (stat.tagG != tag.tagG) {
+                                    throw new Error("Unmatch Tags: " + stat.tagG + "--" + tagName);
+                                }
+                            } else if (!tag.isBgn) {
+                                if (N < 0) {
+                                    throw new Error("Unexpected Tag:" + a);
+                                }
+                                stat = NStat[N];
+                                if (stat.tagG != tag.tagG) {
+                                    throw new Error("Unmatch Tags: " + stat.tagG + "--" + tagName);
+                                }
+                                if (tag.cond && !(tag.cond & stat.rlt)) {
+                                    throw new Error("Unexpected Tag: " + tagName);
+                                }
+                                stat.rlt = tag.rlt;
+                            }
+                            return (tag.sBgn || '') + a.substr(tagName.length) + (tag.sEnd || '');
+                        } else {
+                            return '",(' + a + '),"';
+                        }
+                    }
+                ]
+            ];
+            var ss2 = [
+                [/\\n/g, '\n'],
+                [/\\r/g, '\r'],
+                [/\\"/g, '"'],
+                [/\\\\/g, '\\'],
+                [/\$(\w+)/g, 'opts["$1"]'],
+                [/print\(/g, sArrName + '.push(']
+            ];
+            for (var i = 0; i < ss.length; i++) {
+                sTmpl = sTmpl.replace(ss[i][0], ss[i][1]);
+            }
+            if (N >= 0) {
+                throw new Error("Lose end Tag: " + NStat[N].tagG);
+            }
+
+            sTmpl = sTmpl.replace(/##7b/g, '{').replace(/##7d/g, '}').replace(/##23/g, '#'); //替换特殊符号{}#
+            sTmpl = 'var ' + sArrName + '=[];' + sLeft + sTmpl + '");return ' + sArrName + '.join("");';
+
+            //alert('转化结果\n'+sTmpl);
+            var fun = new Function('opts', sTmpl);
+            if (arguments.length > 1) {
+                return fun(opts);
+            }
+            return fun;
+        };
+    }());
+
+    function initNodeList() {
+        var tpl = $('#nodeitem').html();
+        var container = $('#itemlist');
+        var htmlarr = [];
+        console.log(config);
+        itemhtml = '';
+        if (config.nodeList.length > 0) {
+            $.each(config.nodeList, function (index, value) {
+                value.itemindex = index;
+                itemhtml += tmpl(tpl, value);
+            });
+
+            htmlarr.push(itemhtml);
+            container.html(htmlarr.join(''));
+        } else {
+            container.html('<li style="padding:0;margin:0; line-height:180px;text-align: center;color: white;">暂时没有记录</li>');
+        }
+    }
+
+    function editItem(itemindex) {
+        openNodeDialog();
+        data = config.nodeList[itemindex];
+
+        $('#dialog-node').find('[name=name]').val(data.nodename);
+        $('#dialog-node').find('[name=local_ip]').val(data.local_ip);
+        $('#dialog-node').find('[name=local_port]').val(data.local_port);
+        $('#dialog-node').find('[name=remote_port]').val(data.remote_port);
+        $('#dialog-node').find('[name=subdomain]').val(data.subdomain);
+        $('#dialog-node').find('[name=custom_domains]').val(data.custom_domains);
+        $('#dialog-node').find('[name=type]').val(data.type);
+        $('#dialog-node').find('[name=use_compression]').prop("checked", data.use_compression);
+        $('#dialog-node').find('[name=use_encryption]').prop("checked", data.use_encryption);
+        $('#dialog-node button').removeClass("btn-confirm");
+        $('#dialog-node button').addClass("btn-edit");
+        $('#dialog-node #save').val("保存");
+        $('#dialog-node button').prop("itemindex",itemindex);
+        $('#dialog-node .btn-delete').show();
+
+    }
+
+    function initServer() {
+
+        $('.dialog-server').find('[name=server_addr]').val(config.server.server_addr);
+        $('.dialog-server').find('[name=server_port]').val(config.server.server_port);
+        $('.dialog-server').find('[name=token]').val(config.server.token);
+        $('.dialog-server').find('[name=protocol]').val(config.server.protocol);
+        $('.dialog-server').find('[name=tcp_mux]').val(config.server.tcp_mux);
+        $('.sub').html('服务器:' + config.server.server_addr + ' 端口:' + config.server.server_port +
+            ' 协议:' + config.server.protocol + ' 多路复用：' + config.server.tcp_mux);
+
+    }
+
+    $(document).ready(function () {
+
+        $('#addnode').on('blur', function () {
+            if (this.value != '') {
+                $('#bksizeauto').val('');
+                $('.btn-group-autosize .btn').removeClass('active');
+            }
+        });
+
+        $('.cancel__').click(function () {
+            $('.bkspaceset').toggle();
+            $('.mask').toggle();
+        });
+        $('.setbkspace').click(function (e) {
+            $('.bkspaceset').toggle();
+            $('.mask').toggle();
+        });
+        $('.btn-group-autosize .btn').click(function (e) {
+            $('.btn-group-autosize .btn').removeClass('active');
+            $(this).addClass('active');
+            var val = $(this).attr('data-size');
+            //toast(val)
+            $('#bksizeauto').val(val);
+            changeSetingType(val);
+        });
+        $('#bksizecust').on('blur', function () {
+            if (this.value != '') {
+                $('#bksizeauto').val('');
+                $('.btn-group-autosize .btn').removeClass('active');
+            }
+        });
+        $(document.bkspaceset).on('submit', function (e) {
+            e.preventDefault();
+            //toast(encodeURIComponent($('#bksizeauto').val()));
+            setType(encodeURIComponent($('#bksizeauto').val()));
+        });
+        $('#dialog-server .btn-confirm').on('click', function () {
+            var server = {
+                server_addr: $(this).parent().find('[name=server_addr]').val(),
+                server_port: $(this).parent().find('[name=server_port]').val(),
+                token: $(this).parent().find('[name=token]').val(),
+                tcp_mux: $(this).parent().find('[name=tcp_mux]').prop('checked'),
+                protocol: $(this).parent().find('[name=protocol]').val(),
+                user: "mi-router"
+            }
+            if (server.server_addr.length == 0) {
+                toast("服务器不能为空")
+                return false;
+            }
+            if (server.server_port.length == 0) {
+                toast("请设置端口")
+                return false;
+            }
+            if (server.token.length == 0) {
+                toast("请设置密码")
+                return false;
+            }
+            if (server.protocol.length == 0) {
+                toast("请选择协议")
+                return false;
+            }
+            config.server = server;
+            //alert(JSON.stringify(config));
+            syncConfig('base');
+            closeServerDialog();
+        });
+        $('#dialog-node #save').on('click', function () {
+            data = {
+                nodename: $('#dialog-node').find('[name=name]').val(),
+                local_ip: $('#dialog-node').find('[name=local_ip]').val(),
+                local_port: $('#dialog-node').find('[name=local_port]').val(),
+                remote_port: $('#dialog-node').find('[name=remote_port]').val(),
+                subdomain: $('#dialog-node').find('[name=subdomain]').val(),
+                custom_domains: $('#dialog-node').find('[name=custom_domains]').val(),
+                type: $('#dialog-node').find('[name=type]').val(),
+                use_compression: $('#dialog-node').find('[name=use_compression]').prop('checked'),
+                use_encryption: $('#dialog-node').find('[name=use_encryption]').prop('checked')
+            }
+
+            if (data.nodename.length == 0) {
+                toast("名称不能为空！")
+                return false;
+            }
+            if (data.local_ip.length == 0) {
+                toast("内网IP不能为空！")
+                return false;
+            }
+            if (data.local_port.length == 0) {
+                toast("远程端口不能为空！")
+                return false;
+            }
+            if (data.remote_port.length == 0) {
+                toast("远程端口不能为空！")
+                return false;
+            }
+            if (data.type.length == 0) {
+                toast("请选择协议")
+                return false;
+            }
+            if (!isNaN($('#dialog-node #save').prop('itemindex'))){
+                config.nodeList[$(this).prop('itemindex')] = data;
+            }else{
+                config.nodeList.push(data);
+            }
+
+            //console.log(config);
+            syncConfig('base');
+            closeNodeDialog();
+
+        });
+        $('#dialog-node #delete').on('click', function () {
+            config.nodeList.splice($(this).prop("itemindex"), 1);
+            syncConfig('base');
+            closeNodeDialog();
+        });
+
+        getStatus();
+        getType();
+        getFrpcIni();
+        getServer();
+        $("#button").on("click", function () {
+            frpc_config = $("#textarea").val();
+            if (frpc_config.length == 0) {
+                toast("请添加配置");
+                return;
+            }
+            syncConfig("adavnce");
+        });
+    });
+
+    function openServerDialog() {
+        $('#dialog-server').show();
+    }
+
+    function closeServerDialog() {
+        $('#dialog-server').hide();
+    }
+
+    function openNodeDialog() {
+        $("#dialog-node input").val("");
+        $("#dialog-node select").val("");
+        //$("#dialog-node input[name='checkbox']").attr("checked","true");
+        $("#dialog-node input[type='checkbox']").removeAttr("checked");
+        $('#dialog-node button').removeClass("btn-edit");
+        $('#dialog-node button').addClass("btn-confirm");
+        $('#dialog-node button').removeProp("itemindex");
+
+        $('#dialog-node #delete').hide();
+        $('#dialog-node').show();
+
+    }
+
+    function closeNodeDialog() {
+        $('#dialog-node').hide();
+    }
+
+
+</script>
+
+</body>
+</html>
